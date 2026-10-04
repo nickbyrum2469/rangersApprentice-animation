@@ -1,0 +1,14 @@
+{
+  "name": "rangers-apprentice-animation",
+  "private": true,
+  "description": "Fan-made animated episodes, rendered from code",
+  "scripts": {
+    "render": "node render.js",
+    "stills": "node render.js --stills"
+  },
+  "devDependencies": {
+    "@fontsource/cinzel": "^5.0.0",
+    "@fontsource/cormorant-garamond": "^5.0.0",
+    "playwright": "1.56.1"
+  }
+}

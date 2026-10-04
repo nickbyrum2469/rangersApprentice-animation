@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranger's Apprentice — Player</title>
+<style>
+  @font-face { font-family: Cinzel; font-weight: 500; src: url(node_modules/@fontsource/cinzel/files/cinzel-latin-500-normal.woff2) format('woff2'); }
+  @font-face { font-family: Cinzel; font-weight: 600; src: url(node_modules/@fontsource/cinzel/files/cinzel-latin-600-normal.woff2) format('woff2'); }
+  @font-face { font-family: "Cormorant Garamond"; font-weight: 500; font-style: italic; src: url(node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-italic.woff2) format('woff2'); }
+  html, body { margin: 0; height: 100%; background: #000; color: #ccc; font: 14px system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  canvas { max-width: 100%; max-height: 100%; aspect-ratio: 16 / 9; background: #000; }
+  #bar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: #111; }
+  #bar input { flex: 1; }
+  body.render #bar { display: none; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+<div id="bar"><button id="play">Play</button><input id="seek" type="range" min="0" step="0.01" value="0"><span id="time">0.00s</span></div>
+<script src="engine/core.js"></script>
+<script src="engine/world.js"></script>
+<script src="engine/characters.js"></script>
+<script>
+  // ?ep=episodes/ep01/cold-open.js  &scale=0.5  &render=1
+  const q = new URLSearchParams(location.search);
+  const scale = parseFloat(q.get('scale') || '1');
+  const canvas = document.getElementById('c');
+  canvas.width = RA.W * scale; canvas.height = RA.H * scale;
+  const ctx = canvas.getContext('2d');
+  if (q.get('render')) document.body.classList.add('render');
+
+  RA.renderFrame = (T) => { ctx.setTransform(scale, 0, 0, scale, 0, 0); RA.episode.draw(ctx, T); };
+
+  const s = document.createElement('script');
+  s.src = q.get('ep') || 'episodes/ep01/cold-open.js';
+  RA.ready = new Promise((res) => (s.onload = res)).then(async () => {
+    await Promise.all(['500 20px Cinzel', '600 20px Cinzel', 'italic 500 20px "Cormorant Garamond"'].map((f) => document.fonts.load(f)));
+    RA.renderFrame(0);
+  });
+  document.body.appendChild(s);
+
+  // interactive preview controls
+  RA.ready.then(() => {
+    const seek = document.getElementById('seek'), btn = document.getElementById('play'), lbl = document.getElementById('time');
+    seek.max = RA.episode.duration;
+    let playing = false, T = 0, last = 0;
+    const show = () => { RA.renderFrame(T); seek.value = T; lbl.textContent = T.toFixed(2) + 's / ' + RA.episode.duration + 's'; };
+    const loop = (now) => { if (!playing) return; T += (now - last) / 1000; last = now; if (T >= RA.episode.duration) T = 0; show(); requestAnimationFrame(loop); };
+    btn.onclick = () => { playing = !playing; btn.textContent = playing ? 'Pause' : 'Play'; last = performance.now(); requestAnimationFrame(loop); };
+    seek.oninput = () => { T = +seek.value; show(); };
+    addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); btn.click(); } });
+  });
+</script>
+</body>
+</html>
