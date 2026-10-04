@@ -1,14 +1,19 @@
 {
   "name": "rangers-apprentice-animation",
   "private": true,
-  "description": "Fan-made animated episodes, rendered from code",
+  "type": "module",
+  "description": "Fan-made anime adaptation of Ranger's Apprentice, voiced, scored and animated entirely in code",
   "scripts": {
-    "render": "node render.js",
-    "stills": "node render.js --stills"
+    "audio": "python3 audio/build_episode.py",
+    "music": "python3 audio/music_cues.py",
+    "preview": "node show/serve.mjs",
+    "stills": "node show/stills.mjs",
+    "render": "node show/render.mjs"
   },
   "devDependencies": {
     "@fontsource/cinzel": "^5.0.0",
     "@fontsource/cormorant-garamond": "^5.0.0",
-    "playwright": "1.56.1"
+    "playwright": "1.56.1",
+    "three": "0.170.0"
   }
 }

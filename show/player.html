@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Ranger's Apprentice</title>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+<style>
+  @font-face { font-family: Cinzel; font-weight: 700; src: url(/node_modules/@fontsource/cinzel/files/cinzel-latin-700-normal.woff2) format('woff2'); }
+  @font-face { font-family: Cinzel; font-weight: 500; src: url(/node_modules/@fontsource/cinzel/files/cinzel-latin-500-normal.woff2) format('woff2'); }
+  html, body { margin: 0; height: 100%; background: #000; color: #ccc; font: 14px system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #stage canvas { max-width: 100%; max-height: 100%; aspect-ratio: 16/9; }
+  #bar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: #111; }
+  #bar input { flex: 1; }
+  body.render #bar { display: none; }
+</style></head>
+<body>
+<div id="stage"></div>
+<div id="bar"><button id="play">Play</button><input id="seek" type="range" min="0" step="0.01" value="0"><span id="time"></span></div>
+<script type="module">
+// ?ep=ep01  &scale=0.5  &render=1  &t=12.5 (start time)
+import { Runtime } from './lib/runtime.js';
+const q = new URLSearchParams(location.search);
+const ep = await import(`./episodes/${q.get('ep') || 'ep01'}/index.js`);
+const timeline = await (await fetch(ep.TIMELINE)).json();
+const scale = parseFloat(q.get('scale') || '1');
+await document.fonts.load('700 40px Cinzel'); await document.fonts.load('500 40px Cinzel');
+const rt = new Runtime({ width: 1920 * scale, height: 1080 * scale, timeline, scenes: ep.SCENES });
+// Only scenes that have been animated are playable
+const done = timeline.scenes.filter((s) => ep.SCENES[s.n]);
+window.RT = rt;
+window.EP = { duration: timeline.duration, scenes: done.map((s) => ({ n: s.n, start: s.start, end: s.end })) };
+window.renderAt = (T) => rt.frame(T);
+if (q.get('render')) { document.body.classList.add('render'); document.getElementById('stage').appendChild(rt.out); window.ready = true; }
+else {
+  document.getElementById('stage').appendChild(rt.out);
+  const audio = new Audio(ep.AUDIO);
+  const seek = document.getElementById('seek'), btn = document.getElementById('play'), lbl = document.getElementById('time');
+  const last = done[done.length - 1];
+  seek.max = last.end;
+  let T = parseFloat(q.get('t') || done[0].start);
+  const show = () => { rt.frame(T); seek.value = T; lbl.textContent = `${T.toFixed(1)}s`; };
+  const loop = () => { if (audio.paused) return; T = audio.currentTime; if (T > last.end) audio.pause(); show(); requestAnimationFrame(loop); };
+  btn.onclick = () => { if (audio.paused) { audio.currentTime = T; audio.play(); btn.textContent = 'Pause'; requestAnimationFrame(loop); } else { audio.pause(); btn.textContent = 'Play'; } };
+  seek.oninput = () => { T = +seek.value; audio.currentTime = T; show(); };
+  show();
+  window.ready = true;
+}
+</script>
+</body></html>

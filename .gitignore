@@ -2,3 +2,6 @@ node_modules/
 out/
 tools/voices/*.onnx
 tools/voices/*.bin
+audio/cache/
+audio/sfx_lib/
+audio/music/*.wav
