@@ -75,7 +75,7 @@ Baron's office, Ward dormitory, forest path.
 5. **Review with stills, not full renders.** `npm run stills -- 12,40,75` saves a few PNG
    frames in seconds. Only render full video when a scene is approved.
 6. **Render on your own machine if you can.** Rendering is free (no Claude usage) but takes
-   time: about 3 frames per second on this cloud box, so the full 15 minutes takes 2–3 hours.
+   time: about 6 frames per second on this cloud box, so the full 15 minutes takes about 1–1.5 hours.
 7. **Final assembly in a video editor** (CapCut / DaVinci Resolve, both free): put the
    scene MP4s on the timeline, then add voice-over, music, and sound effects.
 
