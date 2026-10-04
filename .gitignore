@@ -1,2 +1,4 @@
 node_modules/
 out/
+tools/voices/*.onnx
+tools/voices/*.bin
