@@ -214,8 +214,18 @@ def reverb(x, room):
 
 
 # ---------------------------------------------------------------- music
+# Until a cue has been composed, borrow the closest-feeling finished one.
+FALLBACK = {
+    "night": "thoughtful", "transition_title": "dawn", "nervous": "playful", "ceremony": "rivalry",
+    "sad": "thoughtful", "tension_build": "mystery", "held_breath": "mystery", "theme_quiet": "dawn",
+    "villain": "mystery", "end_theme": "dawn",
+}
+
 def music_cue(name, sec):
     path = f"{ROOT}/audio/music/{name}.wav"
+    if not os.path.exists(path) and FALLBACK.get(name):
+        print(f"  (music cue '{name}' not composed yet; using '{FALLBACK[name]}')")
+        path = f"{ROOT}/audio/music/{FALLBACK[name]}.wav"
     if not os.path.exists(path):
         print(f"  (music cue '{name}' not generated yet; skipped)")
         return None
