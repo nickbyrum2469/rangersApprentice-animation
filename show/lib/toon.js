@@ -16,7 +16,7 @@ function addRim(m) {
   m.onBeforeCompile = (s) => {
     s.uniforms.rimColor = RIM.color; s.uniforms.rimStrength = RIM.strength;
     s.fragmentShader = 'uniform vec3 rimColor; uniform float rimStrength;\n' + s.fragmentShader.replace('#include <opaque_fragment>',
-      'float rimF = 1.0 - clamp(dot(normalize(vViewPosition), -normal), 0.0, 1.0);\n outgoingLight += rimColor * smoothstep(0.62, 0.78, rimF) * rimStrength * diffuseColor.rgb;\n#include <opaque_fragment>');
+      'float rimF = 1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0);\n outgoingLight += rimColor * smoothstep(0.62, 0.78, rimF) * rimStrength * diffuseColor.rgb;\n#include <opaque_fragment>');
   };
   m.customProgramCacheKey = () => 'rim';
 }

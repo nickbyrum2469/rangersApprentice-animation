@@ -38,6 +38,9 @@ export class Runtime {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    // compress highlights so sunlit skin never clips to white, while keeping anime colours saturated
+    this.renderer.toneMapping = THREE.NeutralToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
     this.camera = new THREE.PerspectiveCamera(35, width / height, 0.05, 1200);
     this.composer = new EffectComposer(this.renderer);
     this.renderPass = new RenderPass(new THREE.Scene(), this.camera);
@@ -71,6 +74,10 @@ export class Runtime {
     const cast = {};
     for (const id of def.cast || []) { cast[id] = makeCharacter(id); scene.add(cast[id].root); }
     const env = def.build({ S, scene, ctx, cast, THREE }) || {};
+    // soft fill light from the camera so faces always read (standard in anime CG)
+    const fill = new THREE.DirectionalLight(def.fillColor || '#fff4ea', def.fill ?? 0.4);
+    scene.add(fill); scene.add(fill.target);
+    this.fill = fill;
     scene.add(S.group);
     this.active = { info, def, scene, S, ctx, cast, env };
     return this.active;
@@ -134,6 +141,11 @@ export class Runtime {
       this.camera.up.set(Math.sin(cam.roll || 0), Math.cos(cam.roll || 0), 0);
       this.camera.lookAt(...cam.target);
       this.camera.updateProjectionMatrix();
+      if (this.fill) {
+        const dir = new THREE.Vector3(...cam.target).sub(this.camera.position).normalize();
+        this.fill.position.copy(this.camera.position).addScaledVector(dir, -2).add(new THREE.Vector3(0, 1.5, 0));
+        this.fill.target.position.copy(this.camera.position).addScaledVector(dir, 10);
+      }
     }
 
     // Fade in/out around scene boundaries
@@ -147,6 +159,7 @@ export class Runtime {
     this.finish.uniforms.tint.value.set(...(def.tint || [1, 1, 1]));
     this.finish.uniforms.sat.value = def.sat ?? 1.12;
     this.bloom.strength = def.bloom ?? 0.45;
+    this.renderer.toneMappingExposure = def.exposure ?? 1.0;
     RIM.color.value.set(def.rim || '#fff2dd');
     RIM.strength.value = def.rimStrength ?? 0.55;
     this.renderPass.scene = scene;

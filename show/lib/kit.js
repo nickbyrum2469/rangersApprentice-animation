@@ -425,6 +425,7 @@ export function torch(S, pos, opts = {}) {
 
 // Volumetric-looking light shaft (sunbeam through a window).
 export function lightShaft(S, from, to, width = 1, color = '#fff2c8', opacity = 0.18) {
+  return null; // the flat beams read as polygons in this style; soft bloom + motes sell the light instead
   const len = new THREE.Vector3(...from).distanceTo(new THREE.Vector3(...to));
   const c = document.createElement('canvas'); c.width = 64; c.height = 256;
   const g = c.getContext('2d');

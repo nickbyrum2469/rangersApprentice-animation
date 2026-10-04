@@ -169,24 +169,25 @@ export function shotOn(char, { angle = 0.35, dist = 1.6, height = 0.05, fov = 32
 }
 
 // Over-the-shoulder: camera behind `back` looking at `front`.
-export function overShoulder(front, back, { side = 1, dist = 0.9, height = 0.12, fov = 30 } = {}) {
+export function overShoulder(front, back, { side = 1, dist = 1.1, height = 0.12, fov = 30 } = {}) {
   const a = headPos(front), b = headPos(back);
   const dir = new THREE.Vector3(a[0] - b[0], 0, a[2] - b[2]).normalize();
   const right = new THREE.Vector3(dir.z, 0, -dir.x);
   return {
-    pos: [b[0] - dir.x * dist + right.x * 0.38 * side, b[1] + height, b[2] - dir.z * dist + right.z * 0.38 * side],
+    pos: [b[0] - dir.x * dist + right.x * 0.45 * side, b[1] + height, b[2] - dir.z * dist + right.z * 0.45 * side],
     target: [a[0], a[1] - 0.05, a[2]], fov,
   };
 }
 
-export function twoShot(a, b, { dist = 3.2, height = 0.1, fov = 35, side = 1 } = {}) {
+export function twoShot(a, b, { dist = 3.2, height = 0.1, fov = 35, side = 1, toward = null } = {}) {
   const A = headPos(a), B = headPos(b);
   const mid = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[2] + B[2]) / 2];
   const dir = new THREE.Vector3(B[0] - A[0], 0, B[2] - A[2]).normalize();
   const n = new THREE.Vector3(-dir.z, 0, dir.x);
   // put the camera on the side the pair is facing (side = -1 flips to the other side)
   const fx = Math.sin(a.root.rotation.y) + Math.sin(b.root.rotation.y), fz = Math.cos(a.root.rotation.y) + Math.cos(b.root.rotation.y);
-  if (n.x * fx + n.z * fz < 0) n.multiplyScalar(-1);
+  if (toward) { if (n.x * (toward[0] - (A[0] + B[0]) / 2) + n.z * (toward[1] - (A[2] + B[2]) / 2) < 0) n.multiplyScalar(-1); }
+  else if (n.x * fx + n.z * fz < 0) n.multiplyScalar(-1);
   n.multiplyScalar(side);
   const sep = Math.hypot(B[0] - A[0], B[2] - A[2]);
   const d = Math.max(dist, sep * 1.25);
@@ -254,7 +255,7 @@ export class SceneCtx {
 // Dialogue coverage: cuts on each new line between a two-shot, an over-the-shoulder and a
 // close-up of the speaker, like a storyboarded anime conversation. `pairs` maps a speaker
 // id to who they are talking to. Returns null when nobody (on screen) is speaking.
-export function coverage(ctx, t, cast, pairs, { closeDist = 0.95, fov = 30, startWide = true, side = 1, sideBySide = false } = {}) {
+export function coverage(ctx, t, cast, pairs, { closeDist = 0.95, fov = 30, startWide = true, side = 1, sideBySide = false, noOTS = [], toward = null } = {}) {
   const cur = ctx.current(t);
   if (!cur || !cur.id || !cast[cur.id]) return null;
   const idx = ctx.lines.indexOf(cur);
@@ -262,7 +263,11 @@ export function coverage(ctx, t, cast, pairs, { closeDist = 0.95, fov = 30, star
   const pattern = idx === 0 && startWide ? 0 : (idx % 3) + 0;
   let s;
   if (!ls) s = shotOn(sp, { angle: 0.35 * side, dist: closeDist, fov });
-  else if (pattern === 0) s = twoShot(sp, ls, { side, fov: 34 });
+  else if (pattern === 0) {
+    const A = headPos(sp), B = headPos(ls);
+    s = Math.hypot(A[0] - B[0], A[2] - B[2]) > 3.2 ? shotOn(sp, { angle: (idx % 2 ? 0.35 : -0.35), dist: 1.25, fov }) : twoShot(sp, ls, { side, fov: 34, toward });
+  }
+  else if (pattern === 1 && noOTS.includes(pairs[cur.id])) s = shotOn(sp, { angle: (idx % 2 ? 0.55 : -0.55), dist: 1.3, fov });
   else if (pattern === 1) s = sideBySide ? shotOn(sp, { angle: Math.sign(headPos(ls)[0] - headPos(sp)[0] || 1) * 0.75, dist: 1.5, fov }) : overShoulder(sp, ls, { side: (idx % 2 ? 1 : -1) * side, fov });
   else s = shotOn(sp, { angle: (idx % 2 ? 0.4 : -0.4), dist: closeDist, fov });
   return drift(s, t, 0.025);

@@ -9,7 +9,7 @@ export const KEEP = { x: 0, z: -8, w: 14, d: 12, h: 18, roofH: 5 };
 export const TOWER = { x: 9.5, z: -15.5, r: 3.2, h: 30 };
 export const HALL = { x: 0, z: 2, w: 12, d: 8, h: 11, roofH: 3.5 };
 
-export function buildRedmont(S, { lit = false, base = '#b3a68e', flags = true } = {}) {
+export function buildRedmont(S, { lit = false, base = '#b3a68e', flags = true, officeDark = false } = {}) {
   const g = new THREE.Group();
   const yard = new THREE.Mesh(new THREE.PlaneGeometry(52, 52), toon('#ffffff', { map: tex.dirt('#b09a74') }));
   yard.material.map.repeat.set(10, 10);
@@ -42,7 +42,7 @@ export function buildRedmont(S, { lit = false, base = '#b3a68e', flags = true } 
   const kd = door(2.2, 3.4); kd.position.set(KEEP.x, 0, KEEP.z + KEEP.d / 2 + 0.02); g.add(kd);
 
   // the Baron's tower: tallest in the castle, ivy up one side
-  const tw = tower(TOWER.r, TOWER.h, { base, roofH: 9, windows: [[24, 0, lit], [16, 0.5, false], [8, 0, false], [24, Math.PI / 2, lit]] });
+  const tw = tower(TOWER.r, TOWER.h, { base, roofH: 9, windows: [[24, 0, lit && !officeDark], [16, 0.5, false], [8, 0, false], [24, Math.PI / 2, lit && !officeDark]] });
   tw.position.set(TOWER.x, 0, TOWER.z); g.add(tw);
 
   // great hall in front of the keep
