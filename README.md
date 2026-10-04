@@ -4,8 +4,9 @@ A fan-made animated series based on John Flanagan's *Ranger's Apprentice*, built
 in code: a small 2D canvas engine renders moonlit silhouette scenes frame by frame, and
 ffmpeg turns them into video.
 
-- **Plan for Episode 1:** [`docs/EPISODE_01_PLAN.md`](docs/EPISODE_01_PLAN.md)
-- **Finished so far:** Episode 1 cold open (36s), in `episodes/ep01/cold-open.js`
+- **Series outline (whole book, 10 episodes):** [`story/SERIES_OUTLINE.md`](story/SERIES_OUTLINE.md)
+- **Episode 1 script:** [`story/ep01-the-choosing.md`](story/ep01-the-choosing.md)
+- **Animation test:** an early 36s style test in `episodes/ep01/cold-open.js`
 
 ## Quick start
 
