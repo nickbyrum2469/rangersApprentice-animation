@@ -190,7 +190,9 @@ export function twoShot(a, b, { dist = 3.2, height = 0.1, fov = 35, side = 1, to
   else if (n.x * fx + n.z * fz < 0) n.multiplyScalar(-1);
   n.multiplyScalar(side);
   const sep = Math.hypot(B[0] - A[0], B[2] - A[2]);
-  const d = Math.max(dist, sep * 1.25);
+  // far enough back that both people sit inside the middle 60% of the frame
+  const halfH = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * (16 / 9);
+  const d = Math.max(dist, (sep / 2) / (0.6 * halfH));
   return { pos: [mid[0] + n.x * d, mid[1] + height, mid[2] + n.z * d], target: [mid[0], mid[1] - 0.15, mid[2]], fov };
 }
 
