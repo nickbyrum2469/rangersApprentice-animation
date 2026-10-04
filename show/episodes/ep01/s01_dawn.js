@@ -92,7 +92,7 @@ export default {
         face: t < tSpot ? 'happy' : t < tStops + 1.4 ? 'curious' : t < tUneasy ? 'scared' : t < tBell ? 'worried' : t < tBreak ? 'surprised' : 'grin',
         armL: { fwd: 0.4, out: 0.35, bend: 0.4 },
       });
-      wp = add(wp, chewing ? P.eat(t) : { armR: { fwd: 0.5 + lean * 0.3, bend: 0.9, out: 0.1 } });
+      wp = add(wp, chewing ? P.eat(t) : { armR: { fwd: 0.3 + lean * 0.15, bend: 0.5, out: 0.15 } });
       if (t < tSpot) wp.lookAt = [200, 30, KEEP.z + 40];
       else wp.lookAt = t > tStops + 1.4 && t < tStops + 3.0 ? [seat[0] + 5, seat[1] + 1.2, KEEP.z - 1.5] : headPos(halt);
       if (t > tUneasy && t < tBell) wp.face = { smile: 0.35, browAng: 0.6, brow: 0.3 };

@@ -158,7 +158,7 @@ export class Character {
     hips.add(spine);
     const chest = d.rT * (spec.chest || 1) * (1 + (spec.belly || 0) * 0.15), waist = d.rT * (spec.waist || 0.74) * (1 + (spec.belly || 0) * 0.75);
     const bl = spec.belly || 0;
-    const prof = [[waist * 0.9, -0.02], [waist * (1 + bl * 0.12), 0.12], [waist * (1.02 + bl * 0.2), 0.3], [Math.max(chest * 0.98, waist * (1 + bl * 0.05)), 0.55], [chest, 0.78], [chest * 0.82, 0.93], [d.headR * 0.5, 1.0]]
+    const prof = [[waist * 0.9, -0.02], [waist * (1 + bl * 0.12), 0.12], [waist * (1.02 + bl * 0.2), 0.3], [Math.max(chest * 0.98, waist * (1 + bl * 0.05)), 0.55], [chest, 0.78], [chest * 0.82, 0.93], [d.headR * 0.33, 1.0], [0.001, 1.0]]
       .map(([r, y]) => new THREE.Vector2(r, y * d.torso));
     const torso = inked(new THREE.LatheGeometry(prof, 20), cloth, ink);
     torso.scale.set(1, 1, 0.68 + (spec.belly || 0) * 0.2);
@@ -516,6 +516,7 @@ export class Character {
       const A = this.arms[side];
       A.sh.rotation.set(-(a.fwd || 0), sx * (a.twist || 0), sx * (0.1 + (a.out || 0)));
       A.el.rotation.set(-(a.bend ?? 0.12), 0, 0);
+      A.sh.scale.set(1, a.stretch || 1, 1);
       A.hand.rotation.set(-(a.wrist || 0), 0, 0);
       const l = p['leg' + side] || {};
       const L = this.legs[side];

@@ -97,7 +97,7 @@ export const P = {
   wave: (t, side = 'R') => ({ ['arm' + side]: { fwd: 0.3, out: 1.9, bend: 1.0 + Math.sin(t * 9) * 0.35 } }),
   shrug: (k = 1) => ({ armL: { out: 0.45 * k, bend: 1.5 * k, fwd: 0.3 * k, twist: -0.8 * k }, armR: { out: 0.45 * k, bend: 1.5 * k, fwd: 0.3 * k, twist: -0.8 * k }, head: { tilt: 0.15 * k } }),
   chin: (side = 'R') => ({ ['arm' + side]: { fwd: 1.0, bend: 2.3, out: -0.3 }, head: { tilt: 0.1, nod: 0.05 } }),
-  eat: (t, side = 'R') => ({ ['arm' + side]: { fwd: 1.1, bend: 2.2 + Math.sin(t * 6) * 0.08, out: -0.25 }, head: { nod: 0.08 + Math.sin(t * 12) * 0.02 } }),
+  eat: (t, side = 'R') => ({ ['arm' + side]: { fwd: 0.85, bend: 2.0 + Math.sin(t * 6) * 0.08, out: -0.25 }, head: { nod: 0.08 + Math.sin(t * 12) * 0.02 } }),
   knead: (t) => ({ armL: { fwd: 0.95 + Math.sin(t * 5) * 0.2, bend: 0.7, out: -0.15 }, armR: { fwd: 0.95 + Math.sin(t * 5 + 3) * 0.2, bend: 0.7, out: -0.15 }, spine: { bend: 0.25 + Math.sin(t * 5) * 0.03 }, head: { nod: 0.35 } }),
   fist: (side = 'R') => ({ ['arm' + side]: { fwd: 0.9, bend: 1.6, out: 0.1 } }),
   shove: (k) => ({ armL: { fwd: 1.4 * k, bend: 0.2 + (1 - k) * 0.8 }, armR: { fwd: 1.4 * k, bend: 0.2 + (1 - k) * 0.8 }, spine: { bend: 0.2 * k } }),
@@ -183,7 +183,11 @@ export function twoShot(a, b, { dist = 3.2, height = 0.1, fov = 35, side = 1 } =
   const A = headPos(a), B = headPos(b);
   const mid = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[2] + B[2]) / 2];
   const dir = new THREE.Vector3(B[0] - A[0], 0, B[2] - A[2]).normalize();
-  const n = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(side);
+  const n = new THREE.Vector3(-dir.z, 0, dir.x);
+  // put the camera on the side the pair is facing (side = -1 flips to the other side)
+  const fx = Math.sin(a.root.rotation.y) + Math.sin(b.root.rotation.y), fz = Math.cos(a.root.rotation.y) + Math.cos(b.root.rotation.y);
+  if (n.x * fx + n.z * fz < 0) n.multiplyScalar(-1);
+  n.multiplyScalar(side);
   const sep = Math.hypot(B[0] - A[0], B[2] - A[2]);
   const d = Math.max(dist, sep * 1.25);
   return { pos: [mid[0] + n.x * d, mid[1] + height, mid[2] + n.z * d], target: [mid[0], mid[1] - 0.15, mid[2]], fov };
@@ -246,3 +250,36 @@ export class SceneCtx {
   }
   lineIndex(t) { const c = this.current(t); return c ? this.lines.indexOf(c) : -1; }
 }
+
+// Dialogue coverage: cuts on each new line between a two-shot, an over-the-shoulder and a
+// close-up of the speaker, like a storyboarded anime conversation. `pairs` maps a speaker
+// id to who they are talking to. Returns null when nobody (on screen) is speaking.
+export function coverage(ctx, t, cast, pairs, { closeDist = 0.95, fov = 30, startWide = true, side = 1, sideBySide = false } = {}) {
+  const cur = ctx.current(t);
+  if (!cur || !cur.id || !cast[cur.id]) return null;
+  const idx = ctx.lines.indexOf(cur);
+  const sp = cast[cur.id], ls = cast[pairs[cur.id]] || null;
+  const pattern = idx === 0 && startWide ? 0 : (idx % 3) + 0;
+  let s;
+  if (!ls) s = shotOn(sp, { angle: 0.35 * side, dist: closeDist, fov });
+  else if (pattern === 0) s = twoShot(sp, ls, { side, fov: 34 });
+  else if (pattern === 1) s = sideBySide ? shotOn(sp, { angle: Math.sign(headPos(ls)[0] - headPos(sp)[0] || 1) * 0.75, dist: 1.5, fov }) : overShoulder(sp, ls, { side: (idx % 2 ? 1 : -1) * side, fov });
+  else s = shotOn(sp, { angle: (idx % 2 ? 0.4 : -0.4), dist: closeDist, fov });
+  return drift(s, t, 0.025);
+}
+
+// ---------------- anime overlay effects (drawn on the 2D overlay canvas) ----------------
+// Radial speed lines converging on (cx, cy), the classic shock/impact effect.
+export function speedLines(g, W, H, t, k = 1, cx = 0.5, cy = 0.5, color = 'rgba(255,255,255,') {
+  if (k <= 0) return;
+  const n = 90, R = Math.hypot(W, H);
+  for (let i = 0; i < n; i++) {
+    const h = Math.sin(i * 91.7 + Math.floor(t * 24) * 13.1) * 0.5 + 0.5;
+    const a = (i / n) * Math.PI * 2 + h * 0.05;
+    const r0 = R * (0.22 + h * 0.18), w = 2 + h * 6;
+    g.strokeStyle = color + (0.25 + h * 0.5) * k + ')'; g.lineWidth = w;
+    g.beginPath(); g.moveTo(W * cx + Math.cos(a) * r0, H * cy + Math.sin(a) * r0); g.lineTo(W * cx + Math.cos(a) * R, H * cy + Math.sin(a) * R); g.stroke();
+  }
+}
+// A one- or two-frame white impact flash.
+export function flash(g, W, H, k) { if (k > 0) { g.fillStyle = `rgba(255,255,255,${Math.min(1, k)})`; g.fillRect(0, 0, W, H); } }

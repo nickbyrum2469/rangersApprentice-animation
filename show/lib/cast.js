@@ -78,6 +78,27 @@ export const DESIGNS = {
   },
 };
 
+// background cooks for the kitchens
+DESIGNS.cook1 = { name: 'Cook', height: 1.7, shoulders: 1.05, belly: 0.4, skin: '#e8b890', eyes: '#3a2a1a', hair: { style: 'short_dark', color: '#5a3a2a' },
+  tunic: '#e8e2d4', sleeve: '#e8e2d4', pants: '#5a4a3a', boots: '#3a2a1e', apron: '#ffffff', tunicLen: 0.4, shortSleeves: true, face: { eyeW: 80, eyeH: 78 } };
+DESIGNS.cook2 = { name: 'Cook', height: 1.58, shoulders: 0.95, skin: '#f0c8a0', eyes: '#4a3a2a', hair: { style: 'updo', color: '#7a4a2a' },
+  tunic: '#c8b090', robe: true, robeColor: '#a89070', pants: '#5a4a3a', boots: '#3a2a1e', apron: '#ffffff', shortSleeves: true, face: { eyeW: 86, eyeH: 88 } };
+
+// Battleschool cadets in leather jerkins
+const cadet = (hair, color, skin, extra = {}) => ({ name: 'Cadet', kid: true, height: 1.68, shoulders: 1.15, hips: 1.05, skin, eyes: '#3a3a3a',
+  hair: { style: 'short_dark', color }, tunic: '#7a5a3a', sleeve: '#d8ccb4', pants: '#4a4038', boots: '#3a2a1e', belt: '#3a2a1e', tunicLen: 0.35,
+  face: { eyeW: 84, eyeH: 86, narrow: 0.1 }, ...extra });
+DESIGNS.cadet1 = cadet('#2a1e16', '#7a5a3a', '#e8b890');
+DESIGNS.cadet2 = cadet('#c89a50', '#6a4a30', '#f0c8a0', { height: 1.74 });
+DESIGNS.cadet3 = cadet('#5a2a1a', '#7a5a3a', '#d8a07a', { height: 1.64 });
+DESIGNS.cadet4 = cadet('#1a1a1a', '#6a4a30', '#c88a64', { height: 1.72 });
+
+// villagers for the market
+DESIGNS.mother = { name: 'Mother', height: 1.62, shoulders: 0.9, skin: '#eec3a0', eyes: '#4a3a2a', hair: { style: 'updo', color: '#5a3a24' },
+  tunic: '#7a8a5a', robe: true, robeColor: '#6a7a4a', pants: '#5a4a3a', boots: '#3a2a1e', apron: '#e8dcc0', face: { eyeW: 86, eyeH: 88 } };
+DESIGNS.child = { name: 'Child', kid: true, height: 1.0, headScale: 1.25, shoulders: 0.9, skin: '#f6d0ac', eyes: '#3a5a8a', hair: { style: 'messy', color: '#c89a50' },
+  tunic: '#8a5a8a', pants: '#5a4a3a', boots: '#3a2a1e', belt: '#3a2a1e', tunicLen: 0.4, face: { eyeW: 104, eyeH: 116 } };
+
 export function makeCharacter(id) {
   const spec = structuredClone(DESIGNS[id]);
   if (spec.cloak) spec.cloak.map = tex.mottled();

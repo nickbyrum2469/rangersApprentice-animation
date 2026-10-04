@@ -25,7 +25,6 @@ const FinishShader = {
       c.rgb = mix(vec3(l), c.rgb, sat) * tint;
       vec2 d = vUv - 0.5; d.x *= 1.3;
       c.rgb *= 1.0 - vignette * smoothstep(0.35, 0.95, length(d));
-      c.rgb += (h(vUv * 1000.0) - 0.5) * 0.025;
       c.rgb *= 1.0 - fade;
       gl_FragColor = c;
     }`,
