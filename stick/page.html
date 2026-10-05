@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Anton; src: url(/node_modules/@fontsource/anton/files/anton-latin-400-normal.woff2) format('woff2'); }
+html,body { margin:0; background:#000; } canvas { width:100vw; display:block; }
+</style></head><body><canvas id="c" width="1920" height="1080"></canvas>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const { fight } = await import(`./${q.get('fight') || 'round1'}.js`);
+await document.fonts.load('100px Anton');
+const ctx = document.getElementById('c').getContext('2d');
+window.FIGHT = fight;
+window.frameCount = fight.frames.length;
+window.drawFrame = (i, q = 0.92) => { fight.draw(ctx, i); return ctx.canvas.toDataURL('image/jpeg', q); };
+window.sound = () => [
+  ...[...fight.events, ...fight.cues].map((e) => ({ ...e, time: fight.realTime(e.t), stopFrames: e.stop ? e.frames : 0 })),
+  ...fight.autoSfx,
+].sort((a, b) => a.time - b.time);
+window.ready = true;
+// live preview when opened in a normal browser
+if (!q.has('render')) { let i = 0; setInterval(() => { fight.draw(ctx, i); i = (i + 1) % fight.frames.length; }, 1000 / 24); }
+</script></body></html>
