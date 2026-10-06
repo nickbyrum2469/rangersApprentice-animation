@@ -111,6 +111,8 @@ for e in data['events']:
     elif ty == 'slide': put(fx, T, slide(e.get('dur', 0.4)), 0.8, pan)
     elif ty == 'step': put(fx, T, kenney('footstep_concrete'), 0.45, pan)
     elif ty == 'cloth': put(fx, T, kenney('cloth'), 0.5, 0)
+    elif ty == 'grab':
+        put(fx, T, block(1), 0.6, pan); put(fx, T, kenney('cloth'), 0.7, pan)
     elif ty == 'crack': put(fx, T, neckcrack(), 0.8, 0.3)
 
 # ---------- ambience: rooftop wind + city ----------
@@ -139,13 +141,14 @@ def drone(f, sec, amp):
     return x * fade * amp
 
 # standoff: drone + heartbeat
-s0, s1 = cues['standoff'], cues['riser'] if 'riser' in cues else 4
-put(mus, s0, drone(41.2, riser_times[0] - s0 + 0.3, 0.16))
-for T in np.arange(s0 + 1.2, riser_times[0], 0.86):
-    put(mus, T, thump(70, 40, 0.25, 0.45)); put(mus, T + 0.18, thump(65, 40, 0.2, 0.3))
+if 'standoff' in cues:
+    s0 = cues['standoff']
+    put(mus, s0, drone(41.2, riser_times[0] - s0 + 0.3, 0.16))
+    for T in np.arange(s0 + 1.2, riser_times[0], 0.86):
+        put(mus, T, thump(70, 40, 0.25, 0.45)); put(mus, T + 0.18, thump(65, 40, 0.2, 0.3))
 for T in riser_times: put(mus, T, swell(0.5, 0.45) if T < cues['fight'] else swell(cues['cut'] - T, 0.5))
 # fight section
-f0, f1 = cues['fight'], cues['slowmo']
+f0, f1 = cues['fight'], cues.get('slowmo', cues.get('end', DUR))
 bass_notes = [41.2, 41.2, 49.0, 41.2, 55.0, 41.2, 49.0, 36.7]
 k = 0
 T = f0
@@ -158,9 +161,12 @@ while T < f1 - 0.05:
     if step % 4 == 0: put(mus, T, saw(bass_notes[(k // 4) % 8], beat * 0.9, 0.28))
     if step == 0: put(mus, T, saw(bass_notes[(k // 16) % 8] * 4, beat * 3.5, 0.06), 1, 0.3)
     k += 1; T += beat / 4
+if 'slowmo' not in cues:
+    put(mus, f1, taiko(), 0.8); put(mus, f1, saw(41.2, 1.5, 0.25))
+    cues.update(tension=DUR + 9, cut=DUR + 9)
 # slow motion: everything drops to a deep drone and a slow heartbeat
-put(mus, f1, drone(30.9, cues['tension'] - f1 + 0.6, 0.22))
-put(mus, f1, thump(60, 30, 1.0, 0.5))
+if cues['tension'] < DUR:
+    put(mus, f1, drone(30.9, cues['tension'] - f1 + 0.6, 0.22)); put(mus, f1, thump(60, 30, 1.0, 0.5))
 # tension: drone + clock-like ticks
 t0 = cues['tension']
 put(mus, t0, drone(41.2, cues['cut'] - t0, 0.13))
@@ -171,7 +177,7 @@ c = cues['cut']
 put(mus, c, taiko(), 1.0); put(mus, c, clash(5), 0.6)
 put(mus, c + 0.35, taiko(), 0.9); put(mus, c + 0.35, saw(41.2, 2.0, 0.3)); put(mus, c + 0.35, saw(82.4, 2.0, 0.15))
 # ambience fades out at the cut
-amb[int(c * SR):] *= np.linspace(1, 0, N - int(c * SR))[:, None] ** 4
+if c < DUR: amb[int(c * SR):] *= np.linspace(1, 0, N - int(c * SR))[:, None] ** 4
 
 mix = fx * 1.0 + mus * 0.75 + amb * 0.35
 mix = np.tanh(mix / (np.abs(mix).max() + 1e-9) * 1.6) * 0.9

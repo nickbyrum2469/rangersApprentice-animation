@@ -16,6 +16,9 @@ page.on('console', (m) => m.type() === 'error' && console.error(m.text()));
 await page.goto(`http://localhost:8131/stick/page.html?render=1&fight=${name}`);
 await page.waitForFunction(() => window.ready, null, { timeout: 60000 });
 const n = await page.evaluate(() => window.frameCount);
+const qa = await page.evaluate(() => (window.FIGHT.qa ? window.FIGHT.qa() : []));
+for (const q of qa) console.log(`contact ${q.t.toFixed(2)}s ${q.type.padEnd(5)} ${q.at.padEnd(8)} gap ${q.gap}${q.ok ? '' : '   <-- MISS'}`);
+if (qa.some((q) => !q.ok) && !args.includes('--force')) { console.log('contact check failed'); await browser.close(); srv.close(); process.exit(1); }
 fs.mkdirSync('out/stick', { recursive: true });
 const grab = async (i) => Buffer.from((await page.evaluate((i) => window.drawFrame(i), i)).split(',')[1], 'base64');
 if (stills) {
