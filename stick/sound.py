@@ -111,6 +111,13 @@ for e in data['events']:
     elif ty == 'slide': put(fx, T, slide(e.get('dur', 0.4)), 0.8, pan)
     elif ty == 'step': put(fx, T, kenney('footstep_concrete'), 0.45, pan)
     elif ty == 'cloth': put(fx, T, kenney('cloth'), 0.5, 0)
+    elif ty == 'wallhit':
+        put(fx, T, hit(p), 0.8, pan); put(fx, T, kenney('impactPlate_heavy'), 0.6, pan); put(fx, T + 0.05, kenney('impactMining'), 0.5, pan)
+    elif ty == 'clang':
+        put(fx, T, kenney('impactMetal_heavy'), 0.9, pan); put(fx, T, crack(0.03, 2500, 0.4), 1, pan)
+        tt = np.arange(int(0.9 * SR)) / SR; put(fx, T, (np.sin(2*np.pi*1180*tt) + 0.5*np.sin(2*np.pi*2710*tt)) * np.exp(-tt*5) * 0.12, 1, pan)
+    elif ty == 'clatter':
+        put(fx, T, kenney('impactMetal_light'), 0.7, pan)
     elif ty == 'grab':
         put(fx, T, block(1), 0.6, pan); put(fx, T, kenney('cloth'), 0.7, pan)
     elif ty == 'crack': put(fx, T, neckcrack(), 0.8, 0.3)
