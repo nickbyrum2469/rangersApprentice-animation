@@ -61,13 +61,14 @@ export function dusk(ctx, v, t, F) {
 // big steel beam stack the fighters can crash into
 export function beams(ctx, t) {
   const [x0, x1, bh] = SET.beams;
+  // three I-beams lying flush on top of each other, ends slightly staggered, I-profile visible at the near end
   for (let k = 0; k < 3; k++) {
-    const y = k * bh, inset = k * 26;
-    ctx.fillStyle = '#4a3a52'; ctx.fillRect(x0 + inset, y, x1 - x0 - inset, bh);
-    ctx.fillStyle = '#5d4a66'; ctx.fillRect(x0 + inset, y + bh - 6, x1 - x0 - inset, 6);
-    ctx.fillStyle = '#2c2133'; ctx.fillRect(x0 + inset, y + 8, x1 - x0 - inset, bh - 16);
-    ctx.fillStyle = 'rgba(255,170,110,0.7)'; ctx.fillRect(x0 + inset, y + bh - 2, x1 - x0 - inset, 2);   // rim from the sunset
-    ctx.fillStyle = '#3b2e43'; ctx.fillRect(x0 + inset, y, 10, bh);
+    const y = k * bh, sx = x0 + [0, 14, 6][k];
+    ctx.fillStyle = '#4a3a52'; ctx.fillRect(sx, y, x1 - sx, bh);
+    ctx.fillStyle = '#2c2133'; ctx.fillRect(sx + 18, y + 7, x1 - sx - 18, bh - 14);          // web shadow
+    ctx.fillStyle = '#5d4a66'; ctx.fillRect(sx, y + bh - 6, x1 - sx, 6); ctx.fillRect(sx, y, x1 - sx, 5);   // flanges
+    ctx.fillStyle = '#6b5577'; ctx.fillRect(sx, y, 16, 6); ctx.fillRect(sx, y + bh - 6, 16, 6); ctx.fillRect(sx + 5, y, 6, bh);   // I-profile end
+    ctx.fillStyle = 'rgba(255,170,110,0.75)'; ctx.fillRect(sx, y + bh - 2, x1 - sx, 2);
   }
   ctx.fillStyle = '#d8a13a'; ctx.fillRect(x0 + 60, bh * 3, 8, 60); ctx.fillRect(x0 + 50, bh * 3 + 52, 28, 8);   // a little warning flag post
 }
@@ -76,8 +77,8 @@ export function beams(ctx, t) {
 export function foreground(ctx, v, t, F) {
   ctx.save(); ctx.filter = 'blur(10px)';
   F.layer(ctx, v, 1.7);
-  ctx.fillStyle = '#0b0710';
-  for (const x of [-700, 260, 1100]) { ctx.fillRect(x, -400, 34, 1400); ctx.fillRect(x - 60, 260, 160, 22); }
+  ctx.fillStyle = 'rgba(14,8,22,0.85)';
+  for (const x of [-900, 520, 1500]) ctx.fillRect(x, -400, 22, 1400);   // plain blurred poles, no crossbars
   ctx.restore();
 }
 
