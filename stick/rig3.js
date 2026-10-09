@@ -168,9 +168,11 @@ export function joints(tr, t, sp = null) {
   }
   const [eA, HA] = ik(sh, hA, LEN.upper, LEN.fore, p.eA);
   const [eB, HB] = ik(sh, hB, LEN.upper, LEN.fore, p.eB);
+  if (sp && sp.fA) FA = toL(sp.fA);   // planted feet (world-locked) override the pose
+  if (sp && sp.fB) FB = toL(sp.fB);
   const [kA, fA] = ik(H, FA, LEN.thigh, LEN.shin, p.kA, 1.05);
   const [kB, fB] = ik(H, FB, LEN.thigh, LEN.shin, p.kB, 1.05);
-  const L = { H, M, N, C, sh, eA, hA: HA, eB, hB: HB, kA, fA, kB, fB, hAt: hA, hBt: hB, Ct: [N[0] + (LEN.neck + LEN.head) * hd[0], N[1] + (LEN.neck + LEN.head) * hd[1]] };
+  const L = { H, M, N, C, sh, eA, hA: HA, eB, hB: HB, kA, fA, kB, fB, hAt: hA, hBt: hB, fAt: FA, fBt: FB, Ct: [N[0] + (LEN.neck + LEN.head) * hd[0], N[1] + (LEN.neck + LEN.head) * hd[1]] };
   const W = {};
   for (const [k, v] of Object.entries(L)) W[k] = toW(v);
   W.chest = [(W.N[0] * 2 + W.H[0]) / 3, (W.N[1] * 2 + W.H[1]) / 3];
@@ -227,4 +229,31 @@ export function drawFighter(ctx, J, F, { alpha = 1, mono = null, width = 11, squ
   ctx.fill();
   L(J.sh, J.eA, J.hA, near);
   ctx.restore();
+}
+
+export class FootLock {
+  constructor() { this.s = {}; }
+  // J0: joints without lock; returns world foot positions to use
+  step(J0, t, dt) {
+    const out = {};
+    const grounded = Math.abs(J0.y) < 2 && Math.abs(J0.rot % 360) < 5;
+    for (const [key, other] of [['fA', 'fB'], ['fB', 'fA']]) {
+      const want = J0[key + 't'];
+      let st = this.s[key];
+      if (!st) st = this.s[key] = { pos: [...want], step: null };
+      if (!grounded || want[1] > 4) { st.pos = [...want]; st.step = null; out[key] = null; continue; }   // foot in the air: follow the pose
+      if (dt > 0) {
+        if (st.step) {
+          st.step.u += dt / st.step.dur;
+          st.step.to = [want[0], 0];
+          if (st.step.u >= 1) { st.pos = st.step.to; st.step = null; }
+        } else if (Math.hypot(want[0] - st.pos[0], want[1] - st.pos[1]) > 16 && !(this.s[other] && this.s[other].step && this.s[other].step.u < 0.5)) {
+          st.step = { from: [...st.pos], to: [want[0], 0], u: 0, dur: 0.11 };
+        }
+      }
+      if (st.step) { const u = st.step.u; st.pos = [lerp(st.step.from[0], st.step.to[0], u), Math.sin(Math.PI * u) * 13]; }
+      out[key] = st.pos;
+    }
+    return out;
+  }
 }
